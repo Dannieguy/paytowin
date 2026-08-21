@@ -7,7 +7,7 @@
 // looking.
 
 import { cookies } from "next/headers";
-import { supabaseAdmin } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import {
   VOTER_COOKIE,
   VOTER_COOKIE_MAX_AGE,
@@ -28,16 +28,19 @@ export async function getVoter(): Promise<Voter | null> {
   const id = verifyVoterCookie(jar.get(VOTER_COOKIE)?.value);
   if (!id) return null;
 
-  const db = supabaseAdmin();
-  if (!db) return null;
+  const sql = db();
+  if (!sql) return null;
 
-  const { data } = await db
-    .from("ptw_voters")
-    .select("id, credits, email, is_admin")
-    .eq("id", id)
-    .maybeSingle();
-
-  return (data as Voter) ?? null;
+  try {
+    const rows = await sql`
+      select id, credits, email, is_admin
+        from ptw_voters
+       where id = ${id}::uuid
+    `;
+    return (rows[0] as Voter) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -49,19 +52,23 @@ export async function ensureVoter(): Promise<Voter | null> {
   const existing = await getVoter();
   if (existing) return existing;
 
-  const db = supabaseAdmin();
-  if (!db) return null;
+  const sql = db();
+  if (!sql) return null;
 
-  const { data, error } = await db
-    .from("ptw_voters")
-    .insert({})
-    .select("id, credits, email, is_admin")
-    .single();
-
-  if (error || !data) return null;
+  let voter: Voter;
+  try {
+    const rows = await sql`
+      insert into ptw_voters default values
+      returning id, credits, email, is_admin
+    `;
+    if (!rows[0]) return null;
+    voter = rows[0] as Voter;
+  } catch {
+    return null;
+  }
 
   const jar = await cookies();
-  jar.set(VOTER_COOKIE, signVoterId(data.id), {
+  jar.set(VOTER_COOKIE, signVoterId(voter.id), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -69,7 +76,7 @@ export async function ensureVoter(): Promise<Voter | null> {
     maxAge: VOTER_COOKIE_MAX_AGE,
   });
 
-  return data as Voter;
+  return voter;
 }
 
 export function siteUrl(): string {

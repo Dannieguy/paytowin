@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { supabaseAdmin } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import styles from "../paytowin.module.css";
 import ModerateRow from "./ModerateRow";
 
@@ -41,17 +41,21 @@ export default async function AdminPage({
     );
   }
 
-  const db = supabaseAdmin();
-  const { data } = db
-    ? await db
-        .from("ptw_posts")
-        .select("id, kind, title, body, image_url, submitter_handle, created_at")
-        .eq("status", "pending")
-        .order("created_at", { ascending: true })
-        .limit(100)
-    : { data: null };
-
-  const pending = (data ?? []) as PendingPost[];
+  const sql = db();
+  let pending: PendingPost[] = [];
+  if (sql) {
+    try {
+      pending = (await sql`
+        select id, kind, title, body, image_url, submitter_handle, created_at
+          from ptw_posts
+         where status = 'pending'
+         order by created_at asc
+         limit 100
+      `) as PendingPost[];
+    } catch {
+      pending = [];
+    }
+  }
 
   return (
     <div className={styles.shell}>

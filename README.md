@@ -58,7 +58,7 @@ valuable disappears.
 
 ## Stack
 
-Next.js 16 (App Router), Supabase/Postgres, Stripe via a zero-dependency
+Next.js 16 (App Router), Neon Postgres over HTTP, Stripe via a zero-dependency
 form-encoded client with HMAC webhook verification. Postgres does all the
 ranking; `lib/paytowin.ts` mirrors the decay constants so the UI can quote a
 price without a round trip. **Those two must stay in sync.**

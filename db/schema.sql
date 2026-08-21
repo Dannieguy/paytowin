@@ -246,24 +246,10 @@ begin
 end $fn$;
 
 -- ============================================================
--- RLS
--- The board renders server-side with the service role, which
--- bypasses RLS. Nothing here needs anon write access, and votes,
--- voters and purchases must never be readable by the browser.
+-- ACCESS
+-- There are no browser-facing database roles. Every query runs
+-- server-side through DATABASE_URL, and the browser never talks to
+-- Postgres, so there is nothing here for row level security to
+-- protect against. Keep it that way: if a client-side client is ever
+-- added, RLS has to come back with it.
 -- ============================================================
-alter table ptw_voters           enable row level security;
-alter table ptw_posts            enable row level security;
-alter table ptw_votes            enable row level security;
-alter table ptw_credit_purchases enable row level security;
-
-drop policy if exists "public read live posts" on ptw_posts;
-create policy "public read live posts" on ptw_posts
-  for select using (status = 'live');
-
--- No policies on ptw_voters, ptw_votes, ptw_credit_purchases:
--- no anon or authenticated access at all.
-
--- Views run as owner and would otherwise leak the vote table
--- through the aggregates. Service role only.
-revoke all on ptw_scored from anon, authenticated;
-revoke all on ptw_board  from anon, authenticated;

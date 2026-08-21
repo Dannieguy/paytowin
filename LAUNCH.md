@@ -1,21 +1,38 @@
 # PayToWin.lol — launch checklist
 
 Standalone project. Nothing is shared with any other site: its own repo, its own
-Vercel project, its own Supabase project, its own Stripe keys.
+Vercel project, its own database, its own Stripe keys.
 
 Code is done, typechecked, linted, and the production build passes.
 
 ---
 
-## 1. Its own Supabase project (3 min)
+## 1. Neon database (3 min)
 
-Create a **new** Supabase project. Do not reuse an existing one.
+Neon rather than Supabase: the free tier has no project cap, and it is the
+Postgres that Vercel integrates with natively.
 
-SQL Editor → New Query → paste all of `supabase/schema.sql` → Run.
+1. Sign up at neon.tech (GitHub login works)
+2. **New project** → name it `paytowin` → keep the default region and Postgres
+   version
+3. On the dashboard, copy the **pooled** connection string. It looks like
+   `postgresql://user:pass@ep-something-pooler.region.aws.neon.tech/neondb?sslmode=require`
+   — make sure it says **pooler**, since the app talks to it over HTTP from
+   serverless functions
+4. Paste it into `.env.local` as `DATABASE_URL=`
 
-Verify with `select * from ptw_board;` — zero rows, no error.
+Then open the **SQL Editor** in the Neon console, paste all of
+`db/schema.sql`, and run it.
 
-Copy the project URL and the **service role** key into `.env.local`.
+Verify with:
+
+```sql
+select count(*) from information_schema.tables where table_name like 'ptw_%';
+select * from ptw_board;
+```
+
+First returns **4**. Second returns zero rows with no error.
+
 
 ---
 
@@ -44,12 +61,11 @@ Fallbacks if taken: `paytowin.gg`, `paytowin.fun`, `paidtowin.lol`.
 ## 4. Environment variables
 
 `.env.local` already has `PTW_COOKIE_SECRET` and `PTW_ADMIN_KEY` generated. Fill
-in the rest, then add all seven to Vercel → Settings → Environment Variables.
+in the rest, then add all six to Vercel → Settings → Environment Variables.
 
 | Variable | Value |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | from step 1 |
-| `SUPABASE_SERVICE_ROLE_KEY` | from step 1 |
+| `DATABASE_URL` | Neon pooled connection string from step 1 |
 | `STRIPE_SECRET_KEY` | from step 2 |
 | `STRIPE_WEBHOOK_SECRET` | from step 2 |
 | `PTW_COOKIE_SECRET` | already in `.env.local` |

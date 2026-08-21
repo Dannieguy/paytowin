@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
-import { supabaseAdmin } from "@/lib/supabase";
+import { db } from "@/lib/db";
 
 // The approval queue is the only thing standing between an anonymous
 // image link and a page that takes card payments, so this endpoint
@@ -31,20 +31,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
-  const db = supabaseAdmin();
-  if (!db) {
-    return NextResponse.json({ error: "not_configured" }, { status: 503 });
-  }
+  const sql = db();
+  if (!sql) return NextResponse.json({ error: "not_configured" }, { status: 503 });
 
-  const patch =
-    action === "approve"
-      ? { status: "live", live_at: new Date().toISOString(), reject_reason: null }
-      : action === "reject"
-        ? { status: "rejected", reject_reason: payload.reason ?? null }
-        : { status: "removed", reject_reason: payload.reason ?? null };
+  const reason = payload.reason ?? null;
 
-  const { error } = await db.from("ptw_posts").update(patch).eq("id", id);
-  if (error) {
+  try {
+    if (action === "approve") {
+      await sql`
+        update ptw_posts
+           set status = 'live', live_at = now(), reject_reason = null
+         where id = ${id}::uuid
+      `;
+    } else {
+      const status = action === "reject" ? "rejected" : "removed";
+      await sql`
+        update ptw_posts
+           set status = ${status}, reject_reason = ${reason}
+         where id = ${id}::uuid
+      `;
+    }
+  } catch {
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 

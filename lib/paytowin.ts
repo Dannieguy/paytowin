@@ -1,7 +1,7 @@
 // PayToWin.lol - domain rules.
 // The decay constants here MUST match ptw_paid_half_life(),
 // ptw_free_half_life() and ptw_grace_hours() in
-// supabase/paytowin-schema.sql. Postgres ranks the board; these
+// db/schema.sql. Postgres ranks the board; these
 // mirrors exist so the UI can quote a "take #1" price and show a
 // live countdown without a round trip.
 

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { ensureVoter } from "@/lib/paytowinServer";
 import { validateImageUrl, cleanHandle } from "@/lib/paytowin";
 
@@ -41,44 +41,33 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  const sql = db();
+  if (!sql) return NextResponse.json({ error: "not_configured" }, { status: 503 });
+
   const voter = await ensureVoter();
-  if (!voter) {
-    return NextResponse.json({ error: "voter_unavailable" }, { status: 503 });
-  }
+  if (!voter) return NextResponse.json({ error: "voter_unavailable" }, { status: 503 });
 
-  const db = supabaseAdmin();
-  if (!db) {
-    return NextResponse.json({ error: "not_configured" }, { status: 503 });
-  }
+  try {
+    // A cap on pending submissions, or the queue becomes a spam target.
+    const waiting = await sql`
+      select count(*)::int as n
+        from ptw_posts
+       where submitter_id = ${voter.id}::uuid and status = 'pending'
+    `;
+    if (Number(waiting[0]?.n ?? 0) >= 3) {
+      return NextResponse.json({ error: "too_many_pending" }, { status: 429 });
+    }
 
-  // One pending submission at a time, or the queue becomes a spam target.
-  const { count } = await db
-    .from("ptw_posts")
-    .select("id", { count: "exact", head: true })
-    .eq("submitter_id", voter.id)
-    .eq("status", "pending");
-
-  if ((count ?? 0) >= 3) {
-    return NextResponse.json({ error: "too_many_pending" }, { status: 429 });
-  }
-
-  const { data, error } = await db
-    .from("ptw_posts")
-    .insert({
-      kind,
-      title,
-      body,
-      image_url: imageUrl,
-      submitter_id: voter.id,
-      submitter_handle: cleanHandle(payload.handle),
-      status: "pending",
-    })
-    .select("id")
-    .single();
-
-  if (error) {
+    const rows = await sql`
+      insert into ptw_posts (kind, title, body, image_url, submitter_id, submitter_handle, status)
+      values (
+        ${kind}, ${title}, ${body}, ${imageUrl},
+        ${voter.id}::uuid, ${cleanHandle(payload.handle)}, 'pending'
+      )
+      returning id
+    `;
+    return NextResponse.json({ ok: true, id: rows[0]?.id, status: "pending" });
+  } catch {
     return NextResponse.json({ error: "submit_failed" }, { status: 500 });
   }
-
-  return NextResponse.json({ ok: true, id: data.id, status: "pending" });
 }

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { ensureVoter } from "@/lib/paytowinServer";
 
 export async function POST(request: NextRequest) {
@@ -15,41 +15,44 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
+  const sql = db();
+  if (!sql) return NextResponse.json({ error: "not_configured" }, { status: 503 });
+
   const voter = await ensureVoter();
-  if (!voter) {
-    return NextResponse.json({ error: "voter_unavailable" }, { status: 503 });
-  }
+  if (!voter) return NextResponse.json({ error: "voter_unavailable" }, { status: 503 });
 
-  const db = supabaseAdmin();
-  if (!db) {
-    return NextResponse.json({ error: "not_configured" }, { status: 503 });
-  }
+  try {
+    if (kind === "free") {
+      const rows = await sql`
+        select ptw_cast_free_vote(${voter.id}::uuid, ${postId}::uuid) as counted
+      `;
+      // false means they had already free-voted here. Not an error, just a no-op.
+      return NextResponse.json({
+        ok: true,
+        counted: rows[0]?.counted === true,
+        credits: voter.credits,
+      });
+    }
 
-  if (kind === "free") {
-    const { data, error } = await db.rpc("ptw_cast_free_vote", {
-      p_voter: voter.id,
-      p_post: postId,
+    const rows = await sql`
+      select ptw_cast_paid_vote(${voter.id}::uuid, ${postId}::uuid) as credits
+    `;
+    return NextResponse.json({
+      ok: true,
+      counted: true,
+      credits: Number(rows[0]?.credits ?? 0),
     });
-    if (error) return rpcError(error.message);
-    // false means they had already free-voted here. Not an error, just a no-op.
-    return NextResponse.json({ ok: true, counted: data === true, credits: voter.credits });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (message.includes("no_credits")) {
+      return NextResponse.json({ error: "no_credits" }, { status: 402 });
+    }
+    if (message.includes("post_not_live")) {
+      return NextResponse.json({ error: "post_not_live" }, { status: 404 });
+    }
+    if (message.includes("invalid input syntax")) {
+      return NextResponse.json({ error: "bad_request" }, { status: 400 });
+    }
+    return NextResponse.json({ error: "vote_failed" }, { status: 500 });
   }
-
-  const { data, error } = await db.rpc("ptw_cast_paid_vote", {
-    p_voter: voter.id,
-    p_post: postId,
-  });
-  if (error) return rpcError(error.message);
-
-  return NextResponse.json({ ok: true, counted: true, credits: data as number });
-}
-
-function rpcError(message: string) {
-  if (message.includes("no_credits")) {
-    return NextResponse.json({ error: "no_credits" }, { status: 402 });
-  }
-  if (message.includes("post_not_live")) {
-    return NextResponse.json({ error: "post_not_live" }, { status: 404 });
-  }
-  return NextResponse.json({ error: "vote_failed" }, { status: 500 });
 }

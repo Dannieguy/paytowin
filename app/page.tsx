@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { supabaseAdmin } from "@/lib/supabase";
+import { db } from "@/lib/db";
 import { getVoter } from "@/lib/paytowinServer";
 import styles from "./paytowin.module.css";
 import VoteButtons from "./VoteButtons";
@@ -26,13 +26,6 @@ export const metadata: Metadata = {
   title: `${SITE_NAME} — ${TAGLINE}`,
   description:
     "Pay a dollar to push a shitpost up the rankings. The money goes to us. That is the entire product.",
-};
-
-const ORDER: Record<BoardTab, { column: string; ascending: boolean }> = {
-  top: { column: "paid_score", ascending: false },
-  good: { column: "free_score", ascending: false },
-  new: { column: "live_at", ascending: false },
-  fame: { column: "peak_paid_score", ascending: false },
 };
 
 export default async function PayToWinPage({
@@ -141,18 +134,33 @@ export default async function PayToWinPage({
 }
 
 async function loadBoard(tab: BoardTab): Promise<BoardRow[]> {
-  const { column, ascending } = ORDER[tab];
-  const db = supabaseAdmin();
-  if (!db) return [];
+  const sql = db();
+  if (!sql) return [];
 
-  const { data, error } = await db
-    .from("ptw_board")
-    .select("*")
-    .order(column, { ascending, nullsFirst: false })
-    .limit(100);
-
-  if (error || !data) return [];
-  return data as BoardRow[];
+  // A sort column cannot be parameterised, so each tab gets its own
+  // literal query rather than an interpolated identifier.
+  try {
+    switch (tab) {
+      case "good":
+        return (await sql`
+          select * from ptw_board order by free_score desc nulls last limit 100
+        `) as BoardRow[];
+      case "new":
+        return (await sql`
+          select * from ptw_board order by live_at desc nulls last limit 100
+        `) as BoardRow[];
+      case "fame":
+        return (await sql`
+          select * from ptw_board order by peak_paid_score desc nulls last limit 100
+        `) as BoardRow[];
+      default:
+        return (await sql`
+          select * from ptw_board order by paid_score desc nulls last limit 100
+        `) as BoardRow[];
+    }
+  } catch {
+    return [];
+  }
 }
 
 function Row({
