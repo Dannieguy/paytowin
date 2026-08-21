@@ -29,6 +29,8 @@ export async function getVoter(): Promise<Voter | null> {
   if (!id) return null;
 
   const db = supabaseAdmin();
+  if (!db) return null;
+
   const { data } = await db
     .from("ptw_voters")
     .select("id, credits, email, is_admin")
@@ -48,6 +50,8 @@ export async function ensureVoter(): Promise<Voter | null> {
   if (existing) return existing;
 
   const db = supabaseAdmin();
+  if (!db) return null;
+
   const { data, error } = await db
     .from("ptw_voters")
     .insert({})

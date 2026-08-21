@@ -47,6 +47,9 @@ export async function POST(request: NextRequest) {
   }
 
   const db = supabaseAdmin();
+  if (!db) {
+    return NextResponse.json({ error: "not_configured" }, { status: 503 });
+  }
 
   // One pending submission at a time, or the queue becomes a spam target.
   const { count } = await db

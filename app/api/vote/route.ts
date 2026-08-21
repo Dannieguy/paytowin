@@ -21,6 +21,9 @@ export async function POST(request: NextRequest) {
   }
 
   const db = supabaseAdmin();
+  if (!db) {
+    return NextResponse.json({ error: "not_configured" }, { status: 503 });
+  }
 
   if (kind === "free") {
     const { data, error } = await db.rpc("ptw_cast_free_vote", {

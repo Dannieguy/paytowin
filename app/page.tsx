@@ -143,6 +143,7 @@ export default async function PayToWinPage({
 async function loadBoard(tab: BoardTab): Promise<BoardRow[]> {
   const { column, ascending } = ORDER[tab];
   const db = supabaseAdmin();
+  if (!db) return [];
 
   const { data, error } = await db
     .from("ptw_board")

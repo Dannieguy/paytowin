@@ -31,6 +31,9 @@ export async function POST(request: NextRequest) {
 
   const obj = event.data?.object ?? {};
   const db = supabaseAdmin();
+  if (!db) {
+    return NextResponse.json({ error: "not_configured" }, { status: 500 });
+  }
 
   try {
     if (event.type === "checkout.session.completed") {

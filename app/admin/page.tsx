@@ -42,12 +42,14 @@ export default async function AdminPage({
   }
 
   const db = supabaseAdmin();
-  const { data } = await db
-    .from("ptw_posts")
-    .select("id, kind, title, body, image_url, submitter_handle, created_at")
-    .eq("status", "pending")
-    .order("created_at", { ascending: true })
-    .limit(100);
+  const { data } = db
+    ? await db
+        .from("ptw_posts")
+        .select("id, kind, title, body, image_url, submitter_handle, created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: true })
+        .limit(100)
+    : { data: null };
 
   const pending = (data ?? []) as PendingPost[];
 

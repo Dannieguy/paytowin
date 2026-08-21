@@ -52,6 +52,9 @@ export async function POST(request: NextRequest) {
   }
 
   const db = supabaseAdmin();
+  if (!db) {
+    return NextResponse.json({ error: "not_configured" }, { status: 503 });
+  }
   const { error } = await db.from("ptw_credit_purchases").insert({
     voter_id: voter.id,
     credits: bundle.credits,

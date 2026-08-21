@@ -32,6 +32,9 @@ export async function POST(request: NextRequest) {
   }
 
   const db = supabaseAdmin();
+  if (!db) {
+    return NextResponse.json({ error: "not_configured" }, { status: 503 });
+  }
 
   const patch =
     action === "approve"
