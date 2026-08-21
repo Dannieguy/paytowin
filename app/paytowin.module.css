@@ -1,0 +1,319 @@
+/* PayToWin.lol
+   globals.css sets html { font-size: 22px } for the salon kiosk, so
+   everything here is in px and the wrapper pins its own base size. */
+
+.shell {
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #0b0d10;
+  color: #e8eaed;
+  min-height: 100vh;
+  padding: 0 0 80px;
+}
+
+.inner {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.header {
+  padding: 40px 0 24px;
+  text-align: center;
+}
+
+.logo {
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  margin: 0;
+}
+.logo span { color: #2bd67b; }
+
+.tagline {
+  color: #9aa3ad;
+  margin: 8px 0 0;
+  font-size: 17px;
+}
+
+.honest {
+  margin: 18px auto 0;
+  max-width: 560px;
+  font-size: 14px;
+  color: #6f7883;
+  border: 1px dashed #262b31;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.btn {
+  font: inherit;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 11px 18px;
+  border: 1px solid #262b31;
+  background: #14181d;
+  color: #e8eaed;
+  cursor: pointer;
+  min-height: 0;
+  min-width: 0;
+}
+.btn:hover { border-color: #3a424b; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.btnPrimary {
+  background: #2bd67b;
+  border-color: #2bd67b;
+  color: #04150c;
+}
+.btnPrimary:hover { background: #4ce094; border-color: #4ce094; }
+
+.balance {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 14px;
+  color: #9aa3ad;
+}
+.balance b { color: #2bd67b; }
+
+/* ── tabs ───────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 32px 0 6px;
+  border-bottom: 1px solid #1c2127;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #7d8792;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.tab:hover { color: #c9cfd6; }
+.tabActive { color: #e8eaed; border-bottom-color: #2bd67b; }
+
+.tabBlurb {
+  color: #6f7883;
+  font-size: 13px;
+  margin: 10px 0 22px;
+}
+
+/* ── rows ───────────────────────────────────────────── */
+.row {
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid #14181d;
+  align-items: flex-start;
+}
+
+.rank {
+  font-size: 22px;
+  font-weight: 900;
+  color: #4a525b;
+  min-width: 44px;
+  text-align: right;
+  padding-top: 2px;
+}
+.rankTop { color: #2bd67b; }
+
+.thumbWrap { flex-shrink: 0; }
+.thumb {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #14181d;
+  display: block;
+}
+
+.textPost {
+  width: 96px;
+  min-height: 96px;
+  border-radius: 8px;
+  background: #14181d;
+  border: 1px solid #1c2127;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.meta { flex: 1; min-width: 0; }
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  margin: 6px 0 0;
+  color: #9aa3ad;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.sub {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6f7883;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.score { color: #2bd67b; font-weight: 700; }
+
+/* The gap between the two boards is the joke, so it gets a badge. */
+.gap {
+  background: #2a1216;
+  border: 1px solid #4d1f26;
+  color: #ff8fa3;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.gapGood {
+  background: #0f2318;
+  border-color: #1d4a30;
+  color: #6ee7a0;
+}
+
+.voteCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+.voteBtn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid #262b31;
+  background: #14181d;
+  color: #e8eaed;
+  white-space: nowrap;
+  min-height: 0;
+  min-width: 0;
+}
+.voteBtn:hover { border-color: #3a424b; }
+.voteBtn:disabled { opacity: .45; cursor: not-allowed; }
+
+.votePaid {
+  background: #2bd67b;
+  border-color: #2bd67b;
+  color: #04150c;
+}
+.votePaid:hover { background: #4ce094; border-color: #4ce094; }
+
+.empty {
+  text-align: center;
+  color: #6f7883;
+  padding: 60px 0;
+}
+
+/* ── panels ─────────────────────────────────────────── */
+.panel {
+  background: #101418;
+  border: 1px solid #1c2127;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.panelTitle {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.panelBlurb {
+  margin: 0 0 16px;
+  color: #7d8792;
+  font-size: 14px;
+}
+
+.field { margin-bottom: 12px; }
+.label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9aa3ad;
+  margin-bottom: 5px;
+}
+.input {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid #262b31;
+  background: #0b0d10;
+  color: #e8eaed;
+}
+.input:focus { outline: none; border-color: #2bd67b; }
+
+.hint { font-size: 12px; color: #6f7883; margin-top: 5px; }
+.error { color: #ff8fa3; font-size: 14px; margin-top: 10px; }
+.success { color: #6ee7a0; font-size: 14px; margin-top: 10px; }
+
+.bundles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.bundle {
+  text-align: left;
+  font: inherit;
+  border-radius: 11px;
+  border: 1px solid #262b31;
+  background: #0b0d10;
+  color: #e8eaed;
+  padding: 14px;
+  cursor: pointer;
+  min-height: 0;
+  min-width: 0;
+}
+.bundle:hover { border-color: #2bd67b; }
+.bundlePrice { font-size: 21px; font-weight: 900; color: #2bd67b; }
+.bundleLabel { font-weight: 700; margin-top: 2px; }
+.bundleBlurb { font-size: 12px; color: #6f7883; margin-top: 3px; }
+
+.footer {
+  text-align: center;
+  color: #4a525b;
+  font-size: 13px;
+  margin-top: 48px;
+  line-height: 1.8;
+}
+
+@media (max-width: 560px) {
+  .logo { font-size: 30px; }
+  .thumb, .textPost { width: 68px; height: 68px; min-height: 68px; }
+  .rank { min-width: 32px; font-size: 18px; }
+  .row { gap: 10px; }
+}
